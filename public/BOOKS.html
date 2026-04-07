@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQe
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookLoop - Buy, Sell & Exchange Books</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F5EFE6;
+      --bg-dark: #E8DFD1;
+      --bg-darker: #D4C4B0;
+      --fg: #2D1810;
+      --fg-light: #4A3528;
+      --muted: #7A6455;
+      --accent: #A67C52;
+      --accent-dark: #8B6544;
+      --card: #FFFDF9;
+      --border: #C9A87C;
+      --shadow: rgba(45, 24, 16, 0.08);
+      --shadow-lg: rgba(45, 24, 16, 0.15);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, h5 { font-family: 'Playfair Display', serif; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    .page {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .page.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(30px); }
+    }
+
+    .animate-in { animation: fadeInUp 0.6s ease forwards; }
+    .animate-in-delay-1 { animation-delay: 0.1s; opacity: 0; }
+    .animate-in-delay-2 { animation-delay: 0.2s; opacity: 0; }
+
+    .book-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .book-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px var(--shadow-lg);
+    }
+    .book-card:hover .book-overlay { opacity: 1; }
+    .book-card:hover .book-cover { transform: scale(1.05); }
+    .book-cover { transition: transform 0.4s ease; }
+    .book-overlay { opacity: 0; transition: opacity 0.3s ease; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(166, 124, 82, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(166, 124, 82, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--fg);
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-dark);
+      border-color: var(--accent);
+    }
+
+    .category-card { transition: all 0.3s ease; }
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px var(--shadow-lg);
+    }
+
+    .nav-link { position: relative; transition: color 0.3s ease; }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+    .modal { opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+    .modal.show { opacity: 1; visibility: visible; }
+    .modal-content { transform: scale(0.9) translateY(20px); transition: transform 0.3s ease; }
+    .modal.show .modal-content { transform: scale(1) translateY(0); }
+
+    .filter-chip { transition: all 0.2s ease; }
+    .filter-chip:hover, .filter-chip.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.2);
+    }
+
+    .toast { animation: slideInRight 0.4s ease, fadeOut 0.4s ease 2.5s forwards; }
+    .star-filled { color: #E6A64C; }
+    .star-empty { color: #D4C4B0; }
+    .profile-tab { transition: all 0.3s ease; }
+    .profile-tab.active { background: var(--accent); color: white; }
+    .mobile-menu { transform: translateX(-100%); transition: transform 0.3s ease; }
+    .mobile-menu.open { transform: translateX(0); }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 bg-[#F5EFE6]/95 backdrop-blur-md border-b border-[#C9A87C]/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <a href="#" onclick="navigateTo('home')" class="flex items-center gap-2">
+          <svg class="w-8 h-8 text-[#A67C52]" viewBox="0 0 32 32" fill="none">
+            <path d="M6 4C6 2.89543 6.89543 2 8 2H24C25.1046 2 26 2.89543 26 4V28C26 29.1046 25.1046 30 24 30H8C6.89543 30 6 29.1046 6 28V4Z" fill="currentColor" opacity="0.2"/>
+            <path d="M8 2C6.89543 2 6 2.89543 6 4V28C6 29.1046 6.89543 30 8 30H24C25.1046 30 26 29.1046 26 28V4C26 2.89543 25.1046 2 24 2H8Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M10 8H22M10 12H22M10 16H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="16" cy="22" r="3" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          <span class="text-xl font-semibold text-[#2D1810]" style="font-family: 'Playfair Display', serif;">BookLoop</span>
+        </a>
+
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#" onclick="navigateTo('home')" class="nav-link text-[#4A3528] hover:text-[#A67C52]" data-page="home">Home</a>
+          <a href="#" onclick="navigateTo('explore')" class="nav-link text-[#4A3528] hover:text-[#A67C52]" data-page="explore">Explore</a>
+          <a href="#" onclick="navigateTo('exchange')" class="nav-link text-[#4A3528] hover:text-[#A67C52]" data-page="exchange">Exchange</a>
+          <a href="#" onclick="navigateTo('sell')" class="nav-link text-[#4A3528] hover:text-[#A67C52]" data-page="sell">Sell</a>
+          <a href="#" onclick="navigateTo('profile')" class="nav-link text-[#4A3528] hover:text-[#A67C52]" data-page="profile">Profile</a>
+        </div>
+
+        <div class="hidden md:flex items-center gap-3">
+          <button onclick="openModal('loginModal')" class="btn-secondary px-4 py-2 rounded-full text-sm font-medium">Login</button>
+          <button onclick="openModal('registerModal')" class="btn-primary px-4 py-2 rounded-full text-sm font-medium">Sign Up</button>
+        </div>
+
+        <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-[#E8DFD1]">
+          <svg class="w-6 h-6 text-[#2D1810]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="mobile-menu fixed inset-0 z-50 bg-[#F5EFE6]">
+    <div class="flex flex-col h-full p-6">
+      <div class="flex justify-between items-center mb-8">
+        <span class="text-xl font-semibold text-[#2D1810]" style="font-family: 'Playfair Display', serif;">BookLoop</span>
+        <button onclick="toggleMobileMenu()" class="p-2 rounded-lg hover:bg-[#E8DFD1]">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="flex flex-col gap-4">
+        <a href="#" onclick="navigateTo('home'); toggleMobileMenu();" class="text-lg py-3 border-b border-[#C9A87C]/30">Home</a>
+        <a href="#" onclick="navigateTo('explore'); toggleMobileMenu();" class="text-lg py-3 border-b border-[#C9A87C]/30">Explore</a>
+        <a href="#" onclick="navigateTo('exchange'); toggleMobileMenu();" class="text-lg py-3 border-b border-[#C9A87C]/30">Exchange</a>
+        <a href="#" onclick="navigateTo('sell'); toggleMobileMenu();" class="text-lg py-3 border-b border-[#C9A87C]/30">Sell</a>
+        <a href="#" onclick="navigateTo('profile'); toggleMobileMenu();" class="text-lg py-3 border-b border-[#C9A87C]/30">Profile</a>
+      </div>
+      <div class="mt-auto flex flex-col gap-3">
+        <button onclick="openModal('loginModal'); toggleMobileMenu();" class="btn-secondary w-full py-3 rounded-full font-medium">Login</button>
+        <button onclick="openModal('registerModal'); toggleMobileMenu();" class="btn-primary w-full py-3 rounded-full font-medium">Sign Up</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="pt-16">
+    <!-- HOME PAGE -->
+    <section id="homePage" class="page active">
+      <!-- Hero Section -->
+      <div class="hero-pattern relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+          <div class="grid lg:grid-cols-2 gap-12 items-center">
+            <div class="animate-in">
+              <span class="inline-block px-4 py-1 bg-[#C9A87C]/20 text-[#8B6544] rounded-full text-sm font-medium mb-6">Welcome to BookLoop</span>
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#2D1810] leading-tight mb-6">
+                Where Stories Find New Chapters
+              </h1>
+              <p class="text-lg text-[#4A3528] mb-8 leading-relaxed">
+                "A book is a dream that you hold in your hand." — Neil Gaiman. Discover, exchange, and share the joy of reading with fellow book lovers.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-4">
+                <button onclick="navigateTo('explore')" class="btn-primary px-8 py-4 rounded-full font-semibold text-lg">
+                  Explore Books
+                </button>
+                <button onclick="navigateTo('exchange')" class="btn-secondary px-8 py-4 rounded-full font-semibold text-lg">
+                  Start Exchange
+                </button>
+              </div>
+            </div>
+            <div class="animate-in-delay-2 relative">
+              <div class="relative flex justify-center">
+                <div class="absolute -inset-4 bg-gradient-to-r from-[#A67C52]/20 to-[#C9A87C]/20 rounded-3xl blur-2xl"></div>
+                <div class="relative grid grid-cols-3 gap-4 p-6">
+                  <div class="col-span-1 space-y-4">
+                    <div class="rounded-xl overflow-hidden shadow-xl transform -rotate-6 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=150&h=220&fit=crop" alt="Book" class="w-full h-36 object-cover">
+                    </div>
+                    <div class="rounded-xl overflow-hidden shadow-xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150&h=180&fit=crop" alt="Book" class="w-full h-28 object-cover">
+                    </div>
+                  </div>
+                  <div class="col-span-1 space-y-4 mt-8">
+                    <div class="rounded-xl overflow-hidden shadow-xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150&h=200&fit=crop" alt="Book" class="w-full h-40 object-cover">
+                    </div>
+                    <div class="rounded-xl overflow-hidden shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1532012197267-da84d127e765?w=150&h=160&fit=crop" alt="Book" class="w-full h-24 object-cover">
+                    </div>
+                  </div>
+                  <div class="col-span-1 space-y-4 mt-4">
+                    <div class="rounded-xl overflow-hidden shadow-xl transform rotate-6 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=150&h=180&fit=crop" alt="Book" class="w-full h-32 object-cover">
+                    </div>
+                    <div class="rounded-xl overflow-hidden shadow-xl transform -rotate-2 hover:rotate-0 transition-transform duration-500">
+                      <img src="https://images.unsplash.com/photo-1589998059171-988d887df646?w=150&h=200&fit=crop" alt="Book" class="w-full h-36 object-cover">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Section -->
+      <div class="bg-[#E8DFD1] py-8">
+        <div class="max-w-4xl mx-auto px-4">
+          <div class="relative animate-in-delay-1">
+            <input type="text" id="mainSearch" placeholder="Search for books, authors, or ISBN..." 
+              class="w-full px-6 py-5 pl-14 text-lg rounded-2xl border-2 border-[#C9A87C]/50 bg-white shadow-lg focus:shadow-xl transition-shadow">
+            <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-[#7A6455]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <button onclick="performSearch()" class="absolute right-3 top-1/2 -translate-y-1/2 btn-primary px-6 py-2 rounded-xl font-medium">Search</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories Section -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center mb-12 animate-in">
+          <h2 class="text-3xl lg:text-4xl font-bold text-[#2D1810] mb-4">Browse by Category</h2>
+          <p class="text-[#7A6455] text-lg">Find your next favorite read in our curated collections</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4" id="categoriesGrid">
+          <!-- Categories populated by JS -->
+        </div>
+      </div>
+
+      <!-- Recommended Books -->
+      <div class="bg-gradient-to-b from-[#E8DFD1] to-[#F5EFE6] py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center mb-10">
+            <div>
+              <h2 class="text-3xl font-bold text-[#2D1810] mb-2">Recommended for You</h2>
+              <p class="text-[#7A6455]">Handpicked based on trending titles</p>
+            </div>
+            <button onclick="navigateTo('explore')" class="hidden sm:flex items-center gap-2 text-[#A67C52] hover:text-[#8B6544] font-medium transition-colors">
+              View All
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6" id="recommendedBooks">
+            <!-- Books populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Exchange Section -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="flex justify-between items-center mb-10">
+          <div>
+            <h2 class="text-3xl font-bold text-[#2D1810] mb-2">Books for Exchange</h2>
+            <p class="text-[#7A6455]">Give your books a new home</p>
+          </div>
+          <button onclick="navigateTo('exchange')" class="hidden sm:flex items-center gap-2 text-[#A67C52] hover:text-[#8B6544] font-medium transition-colors">
+            See All
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6" id="exchangeBooksHome">
+          <!-- Books populated by JS -->
+        </div>
+      </div>
+
+      <!-- Featured Carousel -->
+      <div class="bg-[#2D1810] py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-10">
+            <h2 class="text-3xl font-bold text-[#F5EFE6] mb-2">Featured This Week</h2>
+            <p class="text-[#C9A87C]">Staff picks and bestsellers</p>
+          </div>
+          <div class="carousel-container flex gap-6 overflow-x-auto pb-4" id="featuredCarousel">
+            <!-- Books populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLORE PAGE -->
+    <section id="explorePage" class="page">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col lg:flex-row gap-8">
+          <!-- Filters Sidebar -->
+          <aside class="lg:w-64 flex-shrink-0">
+            <div class="sticky top-24 bg-white rounded-2xl p-6 shadow-lg border border-[#C9A87C]/20">
+              <h3 class="font-semibold text-lg text-[#2D1810] mb-4">Filters</h3>
+              
+              <!-- Genre Filter -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Genre</label>
+                <div class="flex flex-wrap gap-2" id="genreFilters">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Price Range -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Price Range</label>
+                <div class="flex gap-2">
+                  <input type="number" id="minPrice" placeholder="Min" class="w-full px-3 py-2 rounded-lg border border-[#C9A87C]/50 bg-[#F5EFE6] text-sm">
+                  <input type="number" id="maxPrice" placeholder="Max" class="w-full px-3 py-2 rounded-lg border border-[#C9A87C]/50 bg-[#F5EFE6] text-sm">
+                </div>
+              </div>
+
+              <!-- Condition -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Condition</label>
+                <div id="conditionFilters" class="flex flex-wrap gap-2">
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">New</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Used</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Like New</button>
+                </div>
+              </div>
+
+              <!-- Availability -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Availability</label>
+                <div id="availabilityFilters" class="flex flex-wrap gap-2">
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">In Stock</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Pre-order</button>
+                </div>
+              </div>
+
+              <button onclick="applyFilters()" class="w-full btn-primary py-3 rounded-xl font-medium">Apply Filters</button>
+            </div>
+          </aside>
+
+          <!-- Main Content -->
+          <div class="flex-1">
+            <!-- Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+              <div>
+                <h1 class="text-3xl font-bold text-[#2D1810] mb-1">Explore Books</h1>
+                <p class="text-[#7A6455]">Discover your next great read</p>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-sm text-[#7A6455]">Sort by:</span>
+                <select class="px-4 py-2 rounded-lg border border-[#C9A87C]/50 bg-white text-sm focus:border-[#A67C52]">
+                  <option>Newest</option>
+                  <option>Popular</option>
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Books Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6" id="exploreBooksGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXCHANGE PAGE -->
+    <section id="exchangePage" class="page">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+          <h1 class="text-4xl font-bold text-[#2D1810] mb-4">Book Exchange</h1>
+          <p class="text-lg text-[#7A6455] max-w-2xl mx-auto">Connect with fellow readers and swap books. Give your pre-loved books a new home.</p>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+          <!-- Filters -->
+          <aside class="lg:w-64 flex-shrink-0">
+            <div class="sticky top-24 bg-white rounded-2xl p-6 shadow-lg border border-[#C9A87C]/20">
+              <h3 class="font-semibold text-lg text-[#2D1810] mb-4">Exchange Filters</h3>
+              
+              <!-- Genre -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Genre</label>
+                <div class="flex flex-wrap gap-2" id="exchangeGenreFilters">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Condition -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">Condition</label>
+                <div class="flex flex-wrap gap-2">
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Excellent</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Good</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">Fair</button>
+                </div>
+              </div>
+
+              <!-- User Rating -->
+              <div class="mb-6">
+                <label class="text-sm font-medium text-[#4A3528] mb-3 block">User Rating</label>
+                <div class="flex flex-wrap gap-2">
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">4+ Stars</button>
+                  <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">3+ Stars</button>
+                </div>
+              </div>
+
+              <button class="w-full btn-primary py-3 rounded-xl font-medium">Apply Filters</button>
+            </div>
+          </aside>
+
+          <!-- Exchange Books Grid -->
+          <div class="flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="exchangeBooksGrid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested Exchanges -->
+        <div class="mt-16">
+          <h2 class="text-2xl font-bold text-[#2D1810] mb-6">Suggested for Exchange</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6" id="suggestedExchanges">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELL PAGE -->
+    <section id="sellPage" class="page">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+          <h1 class="text-4xl font-bold text-[#2D1810] mb-4">Sell Your Book</h1>
+          <p class="text-lg text-[#7A6455]">List your book for sale or exchange with our community</p>
+        </div>
+
+        <div class="bg-white rounded-3xl p-8 shadow-xl border border-[#C9A87C]/20">
+          <form onsubmit="submitBook(event)" class="space-y-6">
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Book Title -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">Book Title</label>
+                <input type="text" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Enter book title">
+              </div>
+              <!-- Author -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">Author</label>
+                <input type="text" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Enter author name">
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- ISBN -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">ISBN (Optional)</label>
+                <input type="text" class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="978-0-00-000000-0">
+              </div>
+              <!-- Genre -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">Genre</label>
+                <select class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]">
+                  <option>Select genre</option>
+                  <option>Fiction</option>
+                  <option>Non-Fiction</option>
+                  <option>Science</option>
+                  <option>Mystery</option>
+                  <option>Romance</option>
+                  <option>Self-Development</option>
+                  <option>Biography</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Condition -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">Condition</label>
+                <select class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]">
+                  <option>New</option>
+                  <option>Like New</option>
+                  <option>Good</option>
+                  <option>Fair</option>
+                  <option>Worn</option>
+                </select>
+              </div>
+              <!-- Price -->
+              <div>
+                <label class="block text-sm font-medium text-[#4A3528] mb-2">Price ($)</label>
+                <input type="number" required min="0" step="0.01" class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="0.00">
+              </div>
+            </div>
+
+            <!-- Listing Type -->
+            <div>
+              <label class="block text-sm font-medium text-[#4A3528] mb-3">Listing Type</label>
+              <div class="flex flex-wrap gap-3">
+                <label class="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#C9A87C]/50 cursor-pointer hover:border-[#A67C52] transition-colors">
+                  <input type="radio" name="listingType" value="sale" checked class="accent-[#A67C52]">
+                  <span>For Sale</span>
+                </label>
+                <label class="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#C9A87C]/50 cursor-pointer hover:border-[#A67C52] transition-colors">
+                  <input type="radio" name="listingType" value="exchange" class="accent-[#A67C52]">
+                  <span>For Exchange</span>
+                </label>
+                <label class="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#C9A87C]/50 cursor-pointer hover:border-[#A67C52] transition-colors">
+                  <input type="radio" name="listingType" value="both" class="accent-[#A67C52]">
+                  <span>Both</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-medium text-[#4A3528] mb-2">Description</label>
+              <textarea rows="4" class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6] resize-none" placeholder="Describe your book's condition, any notable features..."></textarea>
+            </div>
+
+            <!-- Image Upload -->
+            <div>
+              <label class="block text-sm font-medium text-[#4A3528] mb-2">Book Cover Image</label>
+              <div class="border-2 border-dashed border-[#C9A87C]/50 rounded-xl p-8 text-center hover:border-[#A67C52] transition-colors cursor-pointer">
+                <svg class="w-12 h-12 mx-auto text-[#7A6455] mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <p class="text-[#7A6455]">Click to upload or drag and drop</p>
+                <p class="text-sm text-[#A67C52] mt-1">PNG, JPG up to 10MB</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4">
+              <button type="button" class="flex-1 btn-secondary py-4 rounded-xl font-semibold">Save Draft</button>
+              <button type="submit" class="flex-1 btn-primary py-4 rounded-xl font-semibold">Publish Listing</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOOK DETAILS PAGE -->
+    <section id="bookDetailsPage" class="page">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <button onclick="goBack()" class="flex items-center gap-2 text-[#7A6455] hover:text-[#2D1810] mb-8 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Back to browsing
+        </button>
+
+        <div class="grid lg:grid-cols-[350px_1fr] gap-12" id="bookDetailsContent">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Similar Books -->
+        <div class="mt-16">
+          <h2 class="text-2xl font-bold text-[#2D1810] mb-6">You Might Also Like</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6" id="similarBooks">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE PAGE -->
+    <section id="profilePage" class="page">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Profile Header -->
+        <div class="bg-white rounded-3xl p-8 shadow-lg border border-[#C9A87C]/20 mb-8">
+          <div class="flex flex-col sm:flex-row items-center gap-6">
+            <div class="relative">
+              <div class="w-28 h-28 rounded-full bg-gradient-to-br from-[#A67C52] to-[#C9A87C] p-1">
+                <div class="w-full h-full rounded-full bg-[#F5EFE6] flex items-center justify-center">
+                  <!-- Changed Initials to YA -->
+                  <span class="text-4xl font-bold text-[#A67C52]">YA</span>
+                </div>
+              </div>
+              <button class="absolute bottom-0 right-0 w-8 h-8 bg-[#A67C52] rounded-full flex items-center justify-center text-white shadow-lg hover:bg-[#8B6544] transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="text-center sm:text-left flex-1">
+              <!-- Changed Name to Yaqeen Ashour -->
+              <h1 class="text-2xl font-bold text-[#2D1810] mb-1">Yaqeen Ashour</h1>
+              <p class="text-[#7A6455] mb-3">Book enthusiast | Fiction lover | 47 exchanges</p>
+              <div class="flex flex-wrap justify-center sm:justify-start gap-4">
+                <div class="text-center">
+                  <div class="text-xl font-bold text-[#2D1810]">23</div>
+                  <div class="text-sm text-[#7A6455]">Books Listed</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xl font-bold text-[#2D1810]">47</div>
+                  <div class="text-sm text-[#7A6455]">Exchanges</div>
+                </div>
+                <div class="text-center">
+                  <div class="text-xl font-bold text-[#2D1810]">4.9</div>
+                  <div class="text-sm text-[#7A6455]">Rating</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-primary px-6 py-3 rounded-xl font-medium">Edit Profile</button>
+          </div>
+        </div>
+
+        <!-- Profile Tabs -->
+        <div class="flex flex-wrap gap-2 mb-8 bg-white rounded-2xl p-2 shadow-md border border-[#C9A87C]/20">
+          <button onclick="switchProfileTab('myBooks')" class="profile-tab active px-6 py-3 rounded-xl font-medium text-sm" data-tab="myBooks">My Books</button>
+          <button onclick="switchProfileTab('wishlist')" class="profile-tab px-6 py-3 rounded-xl font-medium text-sm" data-tab="wishlist">Wishlist</button>
+          <button onclick="switchProfileTab('requests')" class="profile-tab px-6 py-3 rounded-xl font-medium text-sm" data-tab="requests">Exchange Requests</button>
+          <button onclick="switchProfileTab('recommendations')" class="profile-tab px-6 py-3 rounded-xl font-medium text-sm" data-tab="recommendations">Recommendations</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="profileTabContent">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-[#2D1810] text-[#C9A87C] py-12 mt-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-4 gap-8">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <svg class="w-8 h-8" viewBox="0 0 32 32" fill="none">
+              <path d="M6 4C6 2.89543 6.89543 2 8 2H24C25.1046 2 26 2.89543 26 4V28C26 29.1046 25.1046 30 24 30H8C6.89543 30 6 29.1046 6 28V4Z" fill="currentColor" opacity="0.2"/>
+              <path d="M8 2C6.89543 2 6 2.89543 6 4V28C6 29.1046 6.89543 30 8 30H24C25.1046 30 26 29.1046 26 28V4C26 2.89543 25.1046 2 24 2H8Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M10 8H22M10 12H22M10 16H18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="16" cy="22" r="3" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="text-xl font-semibold text-[#F5EFE6]" style="font-family: 'Playfair Display', serif;">BookLoop</span>
+          </div>
+          <p class="text-sm opacity-80">Connecting book lovers worldwide. Buy, sell, and exchange books with ease.</p>
+        </div>
+        <div>
+          <h4 class="font-semibold text-[#F5EFE6] mb-4">Quick Links</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" onclick="navigateTo('home')" class="hover:text-[#F5EFE6] transition-colors">Home</a></li>
+            <li><a href="#" onclick="navigateTo('explore')" class="hover:text-[#F5EFE6] transition-colors">Explore</a></li>
+            <li><a href="#" onclick="navigateTo('exchange')" class="hover:text-[#F5EFE6] transition-colors">Exchange</a></li>
+            <li><a href="#" onclick="navigateTo('sell')" class="hover:text-[#F5EFE6] transition-colors">Sell Books</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-[#F5EFE6] mb-4">Support</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="hover:text-[#F5EFE6] transition-colors">Help Center</a></li>
+            <li><a href="#" class="hover:text-[#F5EFE6] transition-colors">Contact Us</a></li>
+            <li><a href="#" class="hover:text-[#F5EFE6] transition-colors">FAQs</a></li>
+            <li><a href="#" class="hover:text-[#F5EFE6] transition-colors">Community Guidelines</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-[#F5EFE6] mb-4">Stay Connected</h4>
+          <p class="text-sm opacity-80 mb-4">Subscribe to our newsletter for book recommendations and deals.</p>
+          <div class="flex gap-2">
+            <input type="email" placeholder="Your email" class="flex-1 px-4 py-2 rounded-lg bg-[#4A3528] border border-[#7A6455] text-[#F5EFE6] placeholder-[#7A6455] text-sm">
+            <button class="btn-primary px-4 py-2 rounded-lg text-sm">Subscribe</button>
+          </div>
+        </div>
+      </div>
+      <div class="border-t border-[#4A3528] mt-8 pt-8 text-center text-sm opacity-70">
+        <p>2024 BookLoop. All rights reserved. Made with love for book lovers.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+    <div class="modal-content bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-[#2D1810]">Welcome Back</h2>
+        <button onclick="closeModal('loginModal')" class="p-2 hover:bg-[#E8DFD1] rounded-full transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Email</label>
+          <input type="email" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="your@email.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Password</label>
+          <input type="password" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Enter your password">
+        </div>
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" class="accent-[#A67C52]">
+            <span class="text-sm text-[#7A6455]">Remember me</span>
+          </label>
+          <a href="#" class="text-sm text-[#A67C52] hover:underline">Forgot password?</a>
+        </div>
+        <button type="submit" class="w-full btn-primary py-4 rounded-xl font-semibold">Login</button>
+      </form>
+      <div class="mt-6 text-center">
+        <p class="text-sm text-[#7A6455]">Don't have an account? <button onclick="closeModal('loginModal'); openModal('registerModal');" class="text-[#A67C52] hover:underline font-medium">Sign up</button></p>
+        <button onclick="continueAsGuest()" class="mt-4 text-sm text-[#7A6455] hover:text-[#2D1810] transition-colors">Continue as Guest</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="modal fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+    <div class="modal-content bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-[#2D1810]">Create Account</h2>
+        <button onclick="closeModal('registerModal')" class="p-2 hover:bg-[#E8DFD1] rounded-full transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form onsubmit="handleRegister(event)" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Full Name</label>
+          <input type="text" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Your name">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Email</label>
+          <input type="email" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="your@email.com">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Password</label>
+          <input type="password" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Create a password">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[#4A3528] mb-2">Confirm Password</label>
+          <input type="password" required class="w-full px-4 py-3 rounded-xl border border-[#C9A87C]/50 bg-[#F5EFE6]" placeholder="Confirm your password">
+        </div>
+        <button type="submit" class="w-full btn-primary py-4 rounded-xl font-semibold">Create Account</button>
+      </form>
+      <div class="mt-6 text-center">
+        <p class="text-sm text-[#7A6455]">Already have an account? <button onclick="closeModal('registerModal'); openModal('loginModal');" class="text-[#A67C52] hover:underline font-medium">Login</button></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="modal fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+    <div class="modal-content bg-white rounded-3xl p-8 w-full max-w-sm shadow-2xl text-center">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+      </div>
+      <h3 id="successTitle" class="text-xl font-bold text-[#2D1810] mb-2">Success!</h3>
+      <p id="successMessage" class="text-[#7A6455] mb-6">Your action was completed successfully.</p>
+      <button onclick="closeModal('successModal')" class="btn-primary px-8 py-3 rounded-xl font-medium">Continue</button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-[200] flex flex-col gap-3"></div>
+
+  <script>
+    // ===== DATA =====
+    const categories = [
+      { name: 'Fiction', icon: '📖', count: 2341 },
+      { name: 'Science', icon: '🔬', count: 892 },
+      { name: 'Self-Help', icon: '🌱', count: 1567 },
+      { name: 'Mystery', icon: '🔍', count: 743 },
+      { name: 'Romance', icon: '💕', count: 1892 },
+      { name: 'Biography', icon: '👤', count: 521 }
+    ];
+
+    const books = [
+      { id: 1, title: 'The Midnight Library', author: 'Matt Haig', price: 14.99, condition: 'New', genre: 'Fiction', rating: 4.8, pages: 304, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop', description: 'Between life and death there is a library...' },
+      { id: 2, title: 'Atomic Habits', author: 'James Clear', price: 16.99, condition: 'Like New', genre: 'Self-Help', rating: 4.9, pages: 320, language: 'English', exchange: false, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=450&fit=crop', description: 'An easy and proven way to build good habits...' },
+      { id: 3, title: 'Project Hail Mary', author: 'Andy Weir', price: 18.99, condition: 'New', genre: 'Science', rating: 4.7, pages: 496, language: 'English', exchange: true, availability: 'Pre-order', cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=450&fit=crop', description: 'A lone astronaut must save the earth...' },
+      { id: 4, title: 'The Silent Patient', author: 'Alex Michaelides', price: 12.99, condition: 'Good', genre: 'Mystery', rating: 4.5, pages: 336, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300&h=450&fit=crop', description: 'A woman shoots her husband five times...' },
+      { id: 5, title: 'Where the Crawdads Sing', author: 'Delia Owens', price: 15.99, condition: 'New', genre: 'Fiction', rating: 4.6, pages: 384, language: 'English', exchange: false, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=300&h=450&fit=crop', description: 'A painfully beautiful debut novel...' },
+      { id: 6, title: 'Sapiens', author: 'Yuval Noah Harari', price: 19.99, condition: 'Like New', genre: 'Science', rating: 4.8, pages: 443, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=300&h=450&fit=crop', description: 'A brief history of humankind...' },
+      { id: 7, title: 'The Psychology of Money', author: 'Morgan Housel', price: 13.99, condition: 'New', genre: 'Self-Help', rating: 4.7, pages: 256, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=300&h=450&fit=crop&sat=-100', description: 'Timeless lessons on wealth...' },
+      { id: 8, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', price: 9.99, condition: 'Used', genre: 'Fiction', rating: 4.4, pages: 180, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=300&h=450&fit=crop&sat=-100', description: 'A masterpiece of American fiction...' },
+      { id: 9, title: 'Educated', author: 'Tara Westover', price: 14.99, condition: 'Like New', genre: 'Biography', rating: 4.6, pages: 334, language: 'English', exchange: false, availability: 'Pre-order', cover: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=450&fit=crop&sat=-100', description: 'A memoir about a young girl...' },
+      { id: 10, title: 'The Alchemist', author: 'Paulo Coelho', price: 11.99, condition: 'New', genre: 'Fiction', rating: 4.5, pages: 208, language: 'English', exchange: true, availability: 'In Stock', cover: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300&h=450&fit=crop&sat=-100', description: 'A magical story about following your dreams...' }
+    ];
+
+    const exchangeBooks = books.filter(b => b.exchange);
+    const genres = ['Fiction', 'Science', 'Self-Help', 'Mystery', 'Romance', 'Biography'];
+
+    // ===== NAVIGATION =====
+    let currentPage = 'home';
+    let previousPage = 'home';
+
+    function navigateTo(page) {
+      previousPage = currentPage;
+      currentPage = page;
+      
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      
+      const targetPage = document.getElementById(page + 'Page');
+      if (targetPage) {
+        setTimeout(() => targetPage.classList.add('active'), 50);
+      }
+      
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.page === page) link.classList.add('active');
+      });
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      initPageContent(page);
+    }
+
+    function goBack() { navigateTo(previousPage); }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobileMenu').classList.toggle('open');
+      document.body.classList.toggle('overflow-hidden');
+    }
+
+    // ===== MODALS =====
+    function openModal(id) { document.getElementById(id).classList.add('show'); document.body.classList.add('overflow-hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('show'); document.body.classList.remove('overflow-hidden'); }
+    document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); }));
+
+    // ===== TOAST NOTIFICATIONS =====
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 ${type === 'success' ? 'bg-green-600' : 'bg-[#A67C52]'} text-white`;
+      toast.innerHTML = `<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span class="font-medium">${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showSuccessModal(title, message) {
+      document.getElementById('successTitle').textContent = title;
+      document.getElementById('successMessage').textContent = message;
+      openModal('successModal');
+    }
+
+    // ===== AUTH HANDLERS =====
+    function handleLogin(e) { e.preventDefault(); closeModal('loginModal'); showSuccessModal('Welcome Back!', 'Logged in as Guest'); }
+    function handleRegister(e) { e.preventDefault(); closeModal('registerModal'); showSuccessModal('Account Created!', 'Registered as Guest'); }
+    function continueAsGuest() { closeModal('loginModal'); showToast('Browsing as Guest'); }
+
+    // ===== FILTER LOGIC (UPDATED) =====
+    function toggleFilter(btn) {
+      btn.classList.toggle('active');
+    }
+
+    function applyFilters() {
+      // 1. Genre Filter
+      const activeGenres = Array.from(document.querySelectorAll('#genreFilters .filter-chip.active')).map(btn => btn.textContent.trim());
+      
+      // 2. Price Filter
+      const minPriceVal = parseFloat(document.getElementById('minPrice').value) || 0;
+      const maxPriceVal = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+      
+      // 3. Condition Filter
+      const activeConditions = Array.from(document.querySelectorAll('#conditionFilters .filter-chip.active')).map(btn => btn.textContent.trim());
+      
+      // 4. Availability Filter
+      const activeAvailability = Array.from(document.querySelectorAll('#availabilityFilters .filter-chip.active')).map(btn => btn.textContent.trim());
+
+      // Filter Logic
+      const filteredBooks = books.filter(book => {
+        const matchesGenre = activeGenres.length === 0 || activeGenres.includes(book.genre);
+        const matchesPrice = book.price >= minPriceVal && book.price <= maxPriceVal;
+        const matchesCondition = activeConditions.length === 0 || activeConditions.includes(book.condition);
+        const matchesAvailability = activeAvailability.length === 0 || activeAvailability.includes(book.availability);
+        
+        return matchesGenre && matchesPrice && matchesCondition && matchesAvailability;
+      });
+
+      // Render
+      document.getElementById('exploreBooksGrid').innerHTML = filteredBooks.map(book => createBookCard(book)).join('');
+      showToast(`Found ${filteredBooks.length} books`);
+    }
+
+    // ===== SEARCH =====
+    function performSearch() {
+      const query = document.getElementById('mainSearch').value;
+      if (query.trim()) {
+        navigateTo('explore');
+        const found = books.filter(b => b.title.toLowerCase().includes(query.toLowerCase()));
+        document.getElementById('exploreBooksGrid').innerHTML = found.map(book => createBookCard(book)).join('');
+        showToast(`Found ${found.length} results for "${query}"`);
+      }
+    }
+
+    // ===== BOOK DETAILS =====
+    function showBookDetails(bookId) {
+      const book = books.find(b => b.id === bookId);
+      if (!book) return;
+      
+      const content = document.getElementById('bookDetailsContent');
+      content.innerHTML = `
+        <div class="animate-in">
+          <div class="sticky top-24">
+            <div class="relative rounded-2xl overflow-hidden shadow-2xl">
+              <img src="${book.cover}" alt="${book.title}" class="w-full aspect-[2/3] object-cover">
+              ${book.exchange ? '<div class="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">Exchange Available</div>' : ''}
+            </div>
+          </div>
+        </div>
+        
+        <div class="animate-in-delay-1">
+          <div class="mb-6">
+            <span class="inline-block px-3 py-1 bg-[#C9A87C]/20 text-[#8B6544] rounded-full text-sm font-medium mb-4">${book.genre}</span>
+            <h1 class="text-3xl lg:text-4xl font-bold text-[#2D1810] mb-2">${book.title}</h1>
+            <p class="text-xl text-[#7A6455]">by ${book.author}</p>
+          </div>
+          
+          <div class="flex items-center gap-2 mb-6">
+            <div class="flex">${generateStars(book.rating)}</div>
+            <span class="text-[#7A6455]">${book.rating} (${Math.floor(Math.random() * 500 + 100)} reviews)</span>
+          </div>
+          
+          <div class="text-3xl font-bold text-[#2D1810] mb-6">$${book.price.toFixed(2)}</div>
+          
+          <div class="flex items-center gap-2 mb-6">
+            <span class="px-3 py-1 bg-[#F5EFE6] border border-[#C9A87C] rounded-full text-sm text-[#4A3528]">${book.condition}</span>
+          </div>
+          
+          <div class="mb-8">
+            <h3 class="font-semibold text-[#2D1810] mb-2">Description</h3>
+            <p class="text-[#7A6455] leading-relaxed">${book.description}</p>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4 mb-8 p-6 bg-[#F5EFE6] rounded-2xl">
+            <div><span class="text-sm text-[#7A6455]">Pages</span><p class="font-semibold text-[#2D1810]">${book.pages}</p></div>
+            <div><span class="text-sm text-[#7A6455]">Language</span><p class="font-semibold text-[#2D1810]">${book.language}</p></div>
+            <div><span class="text-sm text-[#7A6455]">Condition</span><p class="font-semibold text-[#2D1810]">${book.condition}</p></div>
+            <div><span class="text-sm text-[#7A6455]">Genre</span><p class="font-semibold text-[#2D1810]">${book.genre}</p></div>
+          </div>
+          
+          <div class="flex gap-4">
+            <button onclick="addToCart(${book.id})" class="flex-1 btn-primary py-4 rounded-xl font-semibold text-lg">Buy Now</button>
+            ${book.exchange ? `<button onclick="requestExchange(${book.id})" class="flex-1 btn-secondary py-4 rounded-xl font-semibold text-lg">Request Exchange</button>` : ''}
+          </div>
+        </div>
+      `;
+      
+      generateSimilarBooks(book.genre);
+      navigateTo('bookDetails');
+    }
+
+    function generateStars(rating) {
+      let stars = '';
+      const fullStars = Math.floor(rating);
+      for (let i = 0; i < 5; i++) {
+        stars += i < fullStars 
+          ? '<svg class="w-5 h-5 star-filled" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>'
+          : '<svg class="w-5 h-5 star-empty" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>';
+      }
+      return stars;
+    }
+
+    // ===== ACTIONS =====
+    function addToCart(id) { const b = books.find(x => x.id === id); showSuccessModal('Added to Cart!', `"${b.title}" added.`); }
+    function requestExchange(id) { const b = books.find(x => x.id === id); showSuccessModal('Request Sent!', `Exchange request for "${b.title}" sent.`); }
+    function submitBook(e) { e.preventDefault(); showSuccessModal('Book Listed!', 'Your book is now live.'); }
+
+    // ===== PROFILE TABS =====
+    function switchProfileTab(tab) {
+      document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+      
+      const content = document.getElementById('profileTabContent');
+      switch(tab) {
+        case 'myBooks': content.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">${books.slice(0, 4).map(b => createBookCard(b)).join('')}</div>`; break;
+        case 'wishlist': content.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">${books.slice(4, 8).map(b => createBookCard(b)).join('')}</div>`; break;
+        case 'requests': content.innerHTML = `<div class="space-y-4"><div class="bg-white rounded-2xl p-6 shadow-md border border-[#C9A87C]/20"><div class="flex items-center justify-between"><div class="flex items-center gap-4"><img src="https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=60&h=90&fit=crop" alt="Book" class="w-16 h-24 object-cover rounded-lg"><div><h4 class="font-semibold text-[#2D1810]">The Great Gatsby</h4><p class="text-sm text-[#7A6455]">Incoming request from @bookworm42</p></div></div><div class="flex gap-2"><button class="btn-primary px-4 py-2 rounded-lg text-sm">Accept</button><button class="btn-secondary px-4 py-2 rounded-lg text-sm">Decline</button></div></div></div></div>`; break;
+        case 'recommendations': content.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">${books.slice(2, 6).map(b => createBookCard(b)).join('')}</div>`; break;
+      }
+    }
+
+    // ===== RENDER FUNCTIONS =====
+    function createBookCard(book, showExchangeTag = false) {
+      return `
+        <div class="book-card bg-white rounded-2xl overflow-hidden shadow-lg border border-[#C9A87C]/20 cursor-pointer" onclick="showBookDetails(${book.id})">
+          <div class="relative aspect-[2/3] overflow-hidden">
+            <img src="${book.cover}" alt="${book.title}" class="book-cover w-full h-full object-cover">
+            <div class="book-overlay absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-4">
+              <p class="text-white text-sm line-clamp-2">${book.description.substring(0, 80)}...</p>
+            </div>
+            ${showExchangeTag && book.exchange ? '<div class="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">Exchange</div>' : ''}
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-[#2D1810] line-clamp-1 mb-1">${book.title}</h3>
+            <p class="text-sm text-[#7A6455] mb-2">${book.author}</p>
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-[#A67C52]">$${book.price.toFixed(2)}</span>
+              <span class="text-xs px-2 py-1 bg-[#F5EFE6] rounded-full text-[#7A6455]">${book.condition}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function createCategoryCard(cat, i) {
+      const colors = ['from-[#A67C52] to-[#8B6544]', 'from-[#C9A87C] to-[#A67C52]', 'from-[#7A6455] to-[#4A3528]', 'from-[#D4B896] to-[#C9A87C]', 'from-[#6B5344] to-[#3D2314]', 'from-[#8B6544] to-[#6B5344]'];
+      return `
+        <div class="category-card bg-gradient-to-br ${colors[i % colors.length]} rounded-2xl p-6 text-white cursor-pointer animate-in" style="animation-delay: ${i * 0.1}s" onclick="filterByCategory('${cat.name}')">
+          <div class="text-3xl mb-3">${cat.icon}</div>
+          <h3 class="font-semibold mb-1">${cat.name}</h3>
+          <p class="text-sm opacity-80">${cat.count.toLocaleString()} books</p>
+        </div>`;
+    }
+
+    function filterByCategory(name) {
+      navigateTo('explore');
+      const filtered = books.filter(b => b.genre === name);
+      document.getElementById('exploreBooksGrid').innerHTML = filtered.map(book => createBookCard(book)).join('');
+      showToast(`Showing ${name}`);
+    }
+
+    function createFeaturedCard(book) {
+      return `
+        <div class="flex-shrink-0 w-48 cursor-pointer book-card bg-[#4A3528] rounded-2xl overflow-hidden" onclick="showBookDetails(${book.id})">
+          <div class="relative aspect-[2/3]">
+            <img src="${book.cover}" alt="${book.title}" class="book-cover w-full h-full object-cover opacity-90">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#2D1810] via-transparent to-transparent"></div>
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-[#F5EFE6] text-sm line-clamp-1">${book.title}</h3>
+            <p class="text-xs text-[#C9A87C]">${book.author}</p>
+          </div>
+        </div>`;
+    }
+
+    function generateFilterChips(items, containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = items.map(item => `
+        <button class="filter-chip px-3 py-1 rounded-full border border-[#C9A87C] text-sm text-[#4A3528]" onclick="toggleFilter(this)">${item}</button>
+      `).join('');
+    }
+
+    function generateSimilarBooks(genre) {
+      const similar = books.filter(b => b.genre === genre).slice(0, 5);
+      const container = document.getElementById('similarBooks');
+      if (container) container.innerHTML = similar.map(book => createBookCard(book)).join('');
+    }
+
+    // ===== INITIALIZATION =====
+    function initPageContent(page) {
+      switch(page) {
+        case 'home':
+          document.getElementById('categoriesGrid').innerHTML = categories.map((cat, i) => createCategoryCard(cat, i)).join('');
+          document.getElementById('recommendedBooks').innerHTML = books.slice(0, 5).map(book => createBookCard(book)).join('');
+          document.getElementById('exchangeBooksHome').innerHTML = exchangeBooks.slice(0, 4).map(book => createBookCard(book, true)).join('');
+          document.getElementById('featuredCarousel').innerHTML = books.map(book => createFeaturedCard(book)).join('');
+          break;
+        case 'explore':
+          document.getElementById('exploreBooksGrid').innerHTML = books.map(book => createBookCard(book)).join('');
+          generateFilterChips(genres, 'genreFilters');
+          break;
+        case 'exchange':
+          document.getElementById('exchangeBooksGrid').innerHTML = exchangeBooks.map(book => createExchangeCard(book)).join('');
+          document.getElementById('suggestedExchanges').innerHTML = books.filter(b => !b.exchange).slice(0, 5).map(book => createBookCard(book, true)).join('');
+          generateFilterChips(genres, 'exchangeGenreFilters');
+          break;
+        case 'profile':
+          switchProfileTab('myBooks');
+          break;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => initPageContent('home'));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.show').forEach(m => closeModal(m.id));
+        if (document.getElementById('mobileMenu').classList.contains('open')) toggleMobileMenu();
+      }
+    });
+  </script>
+</body>
+</html>
