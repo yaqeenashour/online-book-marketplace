@@ -1,4 +1,3 @@
-// src/pages/Sell.jsx
 import React, { useState } from 'react';
 
 const Sell = ({ showToast }) => {
@@ -20,7 +19,6 @@ const Sell = ({ showToast }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // هنا يمكنك إضافة منطق إرسال البيانات للسيرفر
     if (showToast) {
       showToast("Book Listed Successfully!");
     }
@@ -38,7 +36,6 @@ const Sell = ({ showToast }) => {
           <div className="card card-custom p-4 p-md-5 shadow-lg border-0" style={{ borderRadius: '1.5rem' }}>
             <form onSubmit={handleSubmit}>
               
-              {/* Row 1: Title & Author */}
               <div className="row g-3 mb-3">
                 <div className="col-md-6">
                   <label className="form-label fw-medium">Book Title</label>
@@ -68,7 +65,6 @@ const Sell = ({ showToast }) => {
                 </div>
               </div>
 
-              {/* Row 2: ISBN & Genre */}
               <div className="row g-3 mb-3">
                 <div className="col-md-6">
                   <label className="form-label fw-medium">ISBN (Optional)</label>
@@ -102,7 +98,6 @@ const Sell = ({ showToast }) => {
                 </div>
               </div>
 
-              {/* Row 3: Condition & Price */}
               <div className="row g-3 mb-4">
                 <div className="col-md-6">
                   <label className="form-label fw-medium">Condition</label>
@@ -135,7 +130,6 @@ const Sell = ({ showToast }) => {
                 </div>
               </div>
 
-              {/* Listing Type (Radio Buttons) */}
               <div className="mb-4">
                 <label className="form-label fw-medium d-block mb-2">Listing Type</label>
                 <div className="d-flex flex-wrap gap-2">
@@ -160,7 +154,6 @@ const Sell = ({ showToast }) => {
                 </div>
               </div>
 
-              {/* Description */}
               <div className="mb-4">
                 <label className="form-label fw-medium">Description</label>
                 <textarea 
@@ -174,7 +167,6 @@ const Sell = ({ showToast }) => {
                 ></textarea>
               </div>
 
-              {/* Image Upload */}
               <div className="mb-4">
                 <label className="form-label fw-medium">Book Cover Image</label>
                 <div 
@@ -190,7 +182,6 @@ const Sell = ({ showToast }) => {
                 </div>
               </div>
 
-              {/* Buttons */}
               <div className="d-flex gap-3">
                 <button type="button" className="btn btn-custom-secondary flex-grow-1 py-3 rounded-pill fw-semibold">
                   Save Draft

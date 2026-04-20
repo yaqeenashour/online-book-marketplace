@@ -1,4 +1,3 @@
-// src/pages/Profile.jsx
 import React, { useState } from 'react';
 import BookCard from '../components/BookCard';
 import { books } from '../data/data';
@@ -6,13 +5,11 @@ import { books } from '../data/data';
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('myBooks');
 
-  // بيانات وهمية للطلبات
   const exchangeRequests = [
     { id: 1, title: "The Great Gatsby", requester: "@bookworm42", type: "incoming", img: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=60&h=90&fit=crop" },
     { id: 2, title: "Project Hail Mary", requester: "@sciencenerd", type: "outgoing", img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=60&h=90&fit=crop" }
   ];
 
-  // محتوى التبويبات
   const renderContent = () => {
     switch (activeTab) {
       case 'myBooks':
@@ -74,11 +71,11 @@ const Profile = () => {
 
   return (
     <div className="container py-5 mt-5">
-      {/* بطاقة الملف الشخصي */}
+    
       <div className="card card-custom border-0 shadow-lg rounded-4 overflow-hidden mb-4">
         <div className="card-body p-4 p-md-5">
           <div className="row align-items-center">
-            {/* الصورة والمعلومات */}
+        
             <div className="col-auto mb-3 mb-md-0">
               <div className="position-relative">
                 <div 
@@ -94,19 +91,17 @@ const Profile = () => {
                     <span className="display-4 fw-bold" style={{color: '#A67C52'}}>YA</span>
                   </div>
                 </div>
-                {/* زر تعديل الصورة الصغيرة */}
+              
                 <button className="btn btn-sm btn-custom-primary rounded-circle position-absolute" style={{bottom: '0', right: '0', width: '36px', height: '36px'}}>
                   <i className="bi bi-pencil"></i>
                 </button>
               </div>
             </div>
 
-            {/* الاسم والوصف */}
             <div className="col">
               <h2 className="mb-1" style={{fontFamily: "'Playfair Display', serif"}}>Yaqeen Ashour</h2>
               <p className="text-muted mb-3">Book enthusiast | Fiction lover | 47 exchanges</p>
               
-              {/* الإحصائيات */}
               <div className="d-flex flex-wrap gap-4">
                 <div className="text-center pe-3 border-end">
                   <h4 className="mb-0 fw-bold">23</h4>
@@ -123,7 +118,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* زر تعديل الملف */}
             <div className="col-12 col-md-auto mt-3 mt-md-0 text-md-end">
               <button className="btn btn-custom-primary px-4">
                 <i className="bi bi-pencil-square me-2"></i> Edit Profile
@@ -133,7 +127,6 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* شريط التبويبات (Tabs) */}
       <ul className="nav nav-pills mb-4 p-2 rounded-3 justify-content-center shadow-sm" style={{backgroundColor: 'white'}}>
         {['myBooks', 'wishlist', 'requests', 'recommendations'].map((tab) => (
           <li className="nav-item" key={tab}>
@@ -151,7 +144,6 @@ const Profile = () => {
         ))}
       </ul>
 
-      {/* محتوى التبويب النشط */}
       <div className="fade-in">
         {renderContent()}
       </div>
